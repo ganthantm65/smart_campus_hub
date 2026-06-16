@@ -1,0 +1,16 @@
+{
+  "type": "module",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "express-rate-limit": "^8.5.2",
+    "http-proxy-middleware": "^3.0.7",
+    "jsonwebtoken": "^9.0.3",
+    "redis": "^4.6.0",
+    "morgan": "^1.10.0",
+    "winston": "^3.17.0",
+    "helmet": "^7.1.0",
+    "cookie-parser": "^1.4.6"
+  }
+}
