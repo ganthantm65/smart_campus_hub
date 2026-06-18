@@ -26,27 +26,74 @@ class AuthService{
         }
     }
 
-    async login(email,password){
+    async login(email, password) {
         const client = await pool.connect();
-        const query = "SELECT user_id, password FROM users WHERE email=$1";
-        const values = [email];
-        try{
-            const res = await client.query(query,values);
-            if(res.rows.length==0){
-                return {success:false,message:"Invalid email or password"};
-            }
-            const user=res.rows[0];
-            const isMatch=await bcrypt.compare(password,user.password);
-            if(!isMatch){
-                return {success:false,message:"Invalid email or password"};
-            }
-            const token=await jwt.sign({user_id:user.user_id},"supersecretkeyforjwt",{expiresIn:'1h'});
 
-            await redisClient.setEx(`auth:${user.user_id}`, 3600, token);
-            return {success:true,message:"Login successful",token};
-        }catch(err){
+        try {
+            const query = `
+                SELECT
+                    u.user_id,
+                    u.password,
+                    u.role_id,
+                    r.role_name
+                FROM users u
+                INNER JOIN role r
+                    ON u.role_id = r.role_id
+                WHERE u.email = $1
+            `;
+            const values = [email];
+            const res = await client.query(query, values);
+            if (res.rows.length === 0) {
+                return {
+                    success: false,
+                    message: "Invalid email or password"
+                };
+            }
+            const user = res.rows[0];
+            const isMatch = await bcrypt.compare(
+                password,
+                user.password
+            );
+            if (!isMatch) {
+                return {
+                    success: false,
+                    message: "Invalid email or password"
+                };
+            }
+            const token = jwt.sign(
+                {
+                    user_id: user.user_id,
+                    role_id: user.role_id,
+                    role_name: user.role_name
+                },
+                process.env.JWT_SECRET,
+                {
+                    expiresIn: "1h"
+                }
+            );
+            await redisClient.setEx(
+                `auth:${user.user_id}`,
+                3600,
+                token
+            );
+            return {
+                success: true,
+                message: "Login successful",
+                token,
+                user: {
+                    user_id: user.user_id,
+                    role_id: user.role_id,
+                    role_name: user.role_name
+                }
+            };
+        } catch (err) {
             console.error("Error during login:", err);
-            return {success:false,message:"An error occurred during login"};
+            return {
+                success: false,
+                message: "An error occurred during login"
+            };
+        } finally {
+            client.release();
         }
     }
 
