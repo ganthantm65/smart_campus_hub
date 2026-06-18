@@ -22,7 +22,7 @@ router.get(
 router.get(
     "/:id",
     validateToken,
-    checkRole("ADMIN", "FACULTY"),
+    checkRole("ADMIN", "FACULTY","STUDENT"),
     studentController.getStudentById
 );
 

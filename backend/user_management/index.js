@@ -2,7 +2,7 @@ import express from 'express'
 
 import router from './router/student.router.js';
 
-import { connectRedis } from './util/redis';
+import { connectRedis } from './util/redis.js';
 
 const app=express()
 

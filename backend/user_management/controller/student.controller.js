@@ -4,7 +4,7 @@ class StudentController {
 
     async createStudent(req, res) {
         try {
-            const student = await studentService.createStudent(req.userId,req.body);
+            const student = await studentService.createStudent(req.body);
             return res.status(201).json({
                 success: true,
                 message: "Student profile created successfully",

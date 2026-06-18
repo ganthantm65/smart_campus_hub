@@ -66,7 +66,7 @@ class AuthService{
                     role_id: user.role_id,
                     role_name: user.role_name
                 },
-                process.env.JWT_SECRET,
+                "supersecretkeyforjwt",
                 {
                     expiresIn: "1h"
                 }

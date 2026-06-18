@@ -1,4 +1,4 @@
-import pool from "../util/db";
+import pool from "../util/db.js";
 
 export const checkRole = (...roles)=>{
     return (req,res,next)=>{

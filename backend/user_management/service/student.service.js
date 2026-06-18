@@ -1,11 +1,12 @@
-import pool from "../db/postgres.js";
-import { redisClient } from "../db/redis.js";
+import pool from "../util/db.js";
+import { redisClient } from "../util/redis.js";
 
 class StudentService {
 
-    async createStudent(userId, studentData) {
+    async createStudent( studentData) {
 
         const {
+            email,
             roll_no,
             full_name,
             department,
@@ -22,21 +23,33 @@ class StudentService {
             await client.query("BEGIN");
 
             const userResult = await client.query(
-                `SELECT user_id
-                 FROM users
-                 WHERE user_id = $1`,
-                [userId]
+                `SELECT
+                    u.user_id,
+                    r.role_name
+                FROM users u
+                JOIN role r
+                    ON u.role_id = r.role_id
+                WHERE u.email = $1`,
+                [email]
             );
 
             if (userResult.rows.length === 0) {
                 throw new Error("User not found");
             }
 
+            const user = userResult.rows[0];
+
+            if (user.role_name !== "STUDENT") {
+                throw new Error("Provided email does not belong to a student");
+            }
+
+            const userId = user.user_id;
+
             const existingStudent = await client.query(
                 `SELECT student_id
                  FROM student_profile
                  WHERE user_id = $1`,
-                [userId]
+                [userResult.rows[0].user_id]
             );
 
             if (existingStudent.rows.length > 0) {
