@@ -3,6 +3,7 @@ import express from 'express'
 import router from './router/student.router.js';
 
 import { connectRedis } from './util/redis.js';
+import facultyRouter from './router/faculty.router.js';
 
 const app=express()
 
@@ -10,6 +11,7 @@ connectRedis();
 
 app.use(express.json())
 app.use("/students",router)
+app.use("/faculty",facultyRouter)
 
 app.get("/health", (req, res) => {
     res.status(200).json({
