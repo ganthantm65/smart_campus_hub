@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import authRoutes from "./routes/auth.routes.js";
 import userRouter from "./routes/user.routes.js";
 import limiter from "./middleware/rateLimiter.js";
+import courseProxy from "./proxy/course.proxy.js";
 
 dotenv.config();
 
@@ -10,7 +11,8 @@ const app = express();
 
 // 1. ROUTE FIRST: Let proxy traffic bypass gateway body parsing entirely!
 app.use("/auth", authRoutes);
-app.use("/user", userRouter);
+app.use("/user_management", userRouter);
+app.use("/course_management",courseProxy);
 
 // 2. PARSE SECOND: This will now only apply to local gateway endpoints (if any)
 app.use(express.json());

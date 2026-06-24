@@ -10,7 +10,7 @@ export const validateToken=(req,res,next)=>{
         throw new Error("No token provided")
     }
     try {
-        const decoded=await jwt.sign(token,"supersecretkeyforjwt");
+        const decoded=jwt.verify(token,"supersecretkeyforjwt");
         req.user=decoded;
         req.userId=decoded.user_id;
         next();

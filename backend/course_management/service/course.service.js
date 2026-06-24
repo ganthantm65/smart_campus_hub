@@ -1,7 +1,7 @@
-import pool from "../util/db";
+import pool from "../util/db.js";
 import { redisClient } from "../util/redis.js";
 
-class CourseController{
+class CourseService{
     async createCourse(course){
         const {course_code,course_name,credits,semester,department}=course;
 
@@ -331,4 +331,86 @@ class CourseController{
             };
         }
     }
+
+    async getAllCourses() {
+
+        const cacheKey = "courses:all";
+
+        const cached = await redisClient.get(cacheKey);
+
+        if (cached) {
+            return {
+                success: true,
+                source: "cache",
+                data: JSON.parse(cached)
+            };
+        }
+
+        const result = await pool.query(`
+            SELECT
+                c.*,
+                d.department_name
+            FROM course c
+            JOIN department d
+            ON c.department_id = d.department_id
+            ORDER BY c.course_name
+        `);
+
+        await redisClient.setEx(
+            cacheKey,
+            3600,
+            JSON.stringify(result.rows)
+        );
+
+        return {
+            success: true,
+            source: "database",
+            data: result.rows
+        };
+    }
+
+    async getCoursesBySemester(semester) {
+
+        const result = await pool.query(
+            `
+            SELECT *
+            FROM course
+            WHERE semester = $1
+            ORDER BY course_name
+            `,
+            [semester]
+        );
+
+        return {
+            success: true,
+            data: result.rows
+        };
+    }
+
+    async getCoursesByDepartmentAndSemester(
+        department,
+        semester
+    ) {
+
+        const result = await pool.query(
+            `
+            SELECT
+                c.*,
+                d.department_name
+            FROM course c
+            JOIN department d
+            ON c.department_id = d.department_id
+            WHERE d.department_name = $1
+            AND c.semester = $2
+            `,
+            [department, semester]
+        );
+
+        return {
+            success: true,
+            data: result.rows
+        };
+    }
 }
+
+export default new CourseService();
