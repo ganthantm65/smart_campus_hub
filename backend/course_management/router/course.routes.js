@@ -13,7 +13,7 @@ courseRouter.post(
 );
 
 courseRouter.get(
-    "/:id",
+    "/get/:id",
     validateToken,
     checkRole("ADMIN", "FACULTY", "STUDENT"),
     courseController.getCourseById
@@ -62,14 +62,14 @@ courseRouter.get(
 )
 
 courseRouter.get(
-    "/:department/:semester",
+    "/dept/:department/semester/:semester",
     validateToken,
     checkRole("ADMIN","FACULTY","STUDENT"),
     courseController.getCourseByDepartmentandSemester
 )
 
 courseRouter.get(
-    "/:semester",
+    "/semester/:semester",
     validateToken,
     checkRole("ADMIN","FACULTY","STUDENT"),
     courseController.getCourseBySemester

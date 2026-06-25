@@ -1,21 +1,35 @@
-import jwt from 'jsonwebtoken';
+import jwt from "jsonwebtoken";
 
-export const validateToken=(req,res,next)=>{
-    const authentication=req.headers['authorization'];
-    if(!authentication){
-        throw new Error("No token is specified");
+export const validateToken = (req, res, next) => {
+
+    const token = req.headers.authorization?.split(" ")[1];
+
+    if (!token) {
+        return res.status(401).json({
+            success: false,
+            message: "No token provided"
+        });
     }
-    const token=authentication.split(' ')[0];
-    if(!token){
-        throw new Error("No token provided")
-    }
+
     try {
-        const decoded=jwt.verify(token,"supersecretkeyforjwt");
-        req.user=decoded;
-        req.userId=decoded.user_id;
+
+        const decoded = jwt.verify(
+            token,
+            "supersecretkeyforjwt"
+        );
+
+        req.user = decoded;
+        req.userId = decoded.user_id;
+        req.role = decoded.role;
+
         next();
+
     } catch (error) {
-        console.error("Token validation error:", err);
-        return res.status(401).json({success:false,message:"Invalid token"});
+
+        return res.status(401).json({
+            success: false,
+            message: "Invalid token"
+        });
+
     }
-}
+};

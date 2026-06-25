@@ -3,13 +3,13 @@ import { redisClient } from "../util/redis.js";
 
 class StudentService {
 
-    async createStudent( studentData) {
+    async createStudent(studentData) {
 
         const {
             email,
             roll_no,
             full_name,
-            department,
+            department_name,
             semester,
             year,
             phone,
@@ -23,13 +23,15 @@ class StudentService {
             await client.query("BEGIN");
 
             const userResult = await client.query(
-                `SELECT
+                `
+                SELECT
                     u.user_id,
                     r.role_name
                 FROM users u
                 JOIN role r
                     ON u.role_id = r.role_id
-                WHERE u.email = $1`,
+                WHERE u.email = $1
+                `,
                 [email]
             );
 
@@ -40,21 +42,41 @@ class StudentService {
             const user = userResult.rows[0];
 
             if (user.role_name !== "STUDENT") {
-                throw new Error("Provided email does not belong to a student");
+                throw new Error(
+                    "Provided email does not belong to a student"
+                );
             }
 
-            const userId = user.user_id;
-
             const existingStudent = await client.query(
-                `SELECT student_id
-                 FROM student_profile
-                 WHERE user_id = $1`,
-                [userResult.rows[0].user_id]
+                `
+                SELECT student_id
+                FROM student_profile
+                WHERE user_id = $1
+                `,
+                [user.user_id]
             );
 
             if (existingStudent.rows.length > 0) {
-                throw new Error("Student profile already exists");
+                throw new Error(
+                    "Student profile already exists"
+                );
             }
+
+            const deptResult = await client.query(
+                `
+                SELECT department_id
+                FROM department
+                WHERE department_name = $1
+                `,
+                [department_name]
+            );
+
+            if (deptResult.rows.length === 0) {
+                throw new Error("Department not found");
+            }
+
+            const departmentId =
+                deptResult.rows[0].department_id;
 
             const result = await client.query(
                 `
@@ -63,7 +85,7 @@ class StudentService {
                     user_id,
                     roll_no,
                     full_name,
-                    department,
+                    department_id,
                     semester,
                     year,
                     phone,
@@ -74,10 +96,10 @@ class StudentService {
                 RETURNING *
                 `,
                 [
-                    userId,
+                    user.user_id,
                     roll_no,
                     full_name,
-                    department,
+                    departmentId,
                     semester,
                     year,
                     phone,
@@ -87,12 +109,20 @@ class StudentService {
 
             await client.query("COMMIT");
 
-            return result.rows[0];
+            return {
+                success: true,
+                message: "Student profile created successfully",
+                data: result.rows[0]
+            };
 
         } catch (error) {
 
             await client.query("ROLLBACK");
-            throw error;
+
+            return {
+                success: false,
+                message: error.message
+            };
 
         } finally {
 

@@ -10,7 +10,7 @@ class EnrollmentController {
                     req.body
                 );
 
-            return res.status(201).json(result);
+            return res.status(result.success?201:400).json(result);
 
         } catch (error) {
 

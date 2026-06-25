@@ -7,9 +7,8 @@ class FacultyService {
 
         const {
             email,
-            employee_id,
             full_name,
-            department,
+            department_name,
             designation,
             phone
         } = facultyData;
@@ -40,7 +39,9 @@ class FacultyService {
             const user = userResult.rows[0];
 
             if (user.role_name !== "FACULTY") {
-                throw new Error("User is not a faculty");
+                throw new Error(
+                    "User is not a faculty"
+                );
             }
 
             const existingFaculty = await client.query(
@@ -53,29 +54,45 @@ class FacultyService {
             );
 
             if (existingFaculty.rows.length > 0) {
-                throw new Error("Faculty profile already exists");
+                throw new Error(
+                    "Faculty profile already exists"
+                );
             }
+
+            const deptResult = await client.query(
+                `
+                SELECT department_id
+                FROM department
+                WHERE department_name = $1
+                `,
+                [department_name]
+            );
+
+            if (deptResult.rows.length === 0) {
+                throw new Error("Department not found");
+            }
+
+            const departmentId =
+                deptResult.rows[0].department_id;
 
             const result = await client.query(
                 `
                 INSERT INTO faculty_profile
                 (
                     user_id,
-                    employee_id,
                     full_name,
-                    department,
+                    department_id,
                     designation,
                     phone
                 )
                 VALUES
-                ($1,$2,$3,$4,$5,$6)
+                ($1,$2,$3,$4,$5)
                 RETURNING *
                 `,
                 [
                     user.user_id,
-                    employee_id,
                     full_name,
-                    department,
+                    departmentId,
                     designation,
                     phone
                 ]
@@ -85,7 +102,8 @@ class FacultyService {
 
             return {
                 success: true,
-                message: "Faculty profile created successfully",
+                message:
+                    "Faculty profile created successfully",
                 data: result.rows[0]
             };
 

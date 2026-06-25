@@ -3,6 +3,7 @@ import { connectRedis } from './util/redis.js';
 
 import courseRouter from './router/course.routes.js'
 import enrollmentRouter from './router/enrollment.router.js';
+import facultyRouter from './router/faculty.routes.js';
 
 const app=express();
 
@@ -11,6 +12,7 @@ connectRedis();
 app.use(express.json())
 app.use("/courses",courseRouter)
 app.use("/enrollment",enrollmentRouter)
+app.use("/faculty",facultyRouter)
 
 app.get("/health", (req, res) => {
     res.status(200).json({

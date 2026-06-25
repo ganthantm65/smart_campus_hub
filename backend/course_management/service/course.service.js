@@ -12,10 +12,12 @@ class CourseService{
                 SELECT department_id FROM department
                 WHERE department_name=$1
                 `,[department]);
-            
+                
             if(!dept_id){
                 throw new Error("Department is not found");
             }
+
+            
             
             const result=await pool.query(
                 `INSERT INTO course(
@@ -25,12 +27,12 @@ class CourseService{
                     semester,
                     department_id
                 )
-                VALUES ($1,$2,$3,$4)`,[
+                VALUES ($1,$2,$3,$4,$5)`,[
                     course_code,
                     course_name,
                     credits,
                     semester,
-                    dept_id
+                    dept_id.rows[0].department_id
                 ]
             );
 
