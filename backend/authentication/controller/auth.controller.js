@@ -41,11 +41,7 @@ class AuthController {
                 return res.status(401).json(result);
             }
 
-            return res.status(200).json({
-                success: true,
-                message: result.message,
-                token: result.token
-            });
+            return res.status(200).json(result);
 
         } catch (error) {
             console.error("Login Controller Error:", error);

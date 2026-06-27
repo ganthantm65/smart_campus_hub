@@ -31,16 +31,17 @@ class AuthService{
 
         try {
             const query = `
-                SELECT
-                    u.user_id,
-                    u.password,
-                    u.role_id,
-                    r.role_name
-                FROM users u
-                INNER JOIN role r
-                    ON u.role_id = r.role_id
-                WHERE u.email = $1
-            `;
+                    SELECT
+                        u.user_id,
+                        u.name,
+                        u.password,
+                        u.role_id,
+                        r.role_name
+                    FROM users u
+                    INNER JOIN role r
+                        ON u.role_id = r.role_id
+                    WHERE u.email = $1
+                    `;
             const values = [email];
             const res = await client.query(query, values);
             if (res.rows.length === 0) {
@@ -50,6 +51,7 @@ class AuthService{
                 };
             }
             const user = res.rows[0];
+            
             const isMatch = await bcrypt.compare(
                 password,
                 user.password
@@ -80,11 +82,8 @@ class AuthService{
                 success: true,
                 message: "Login successful",
                 token,
-                user: {
-                    user_id: user.user_id,
-                    role_id: user.role_id,
-                    role_name: user.role_name
-                }
+                name:user.name,
+                user_id:user.user_id
             };
         } catch (err) {
             console.error("Error during login:", err);
