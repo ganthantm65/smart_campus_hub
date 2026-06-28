@@ -1,6 +1,7 @@
 import express from 'express'
 
 import router from './router/student.router.js';
+import cors from 'cors'
 
 import { connectRedis } from './util/redis.js';
 import facultyRouter from './router/faculty.router.js';
@@ -9,9 +10,17 @@ const app=express()
 
 connectRedis();
 
+app.use(
+    cors({
+        origin: "http://localhost:5173",
+        credentials: true,
+    })
+);
+
 app.use(express.json())
 app.use("/students",router)
 app.use("/faculty",facultyRouter)
+
 
 app.get("/health", (req, res) => {
     res.status(200).json({

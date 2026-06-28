@@ -113,6 +113,116 @@ class StudentController {
             });
         }
     }
+
+    async getAllStudents(req, res) {
+        try {
+
+            const students = await studentService.getAllStudents();
+
+            return res.status(200).json({
+                success: true,
+                count: students.length,
+                data: students
+            });
+
+        } catch (error) {
+
+            console.error("Get All Students Error:", error);
+
+            return res.status(500).json({
+                success: false,
+                message: "Internal Server Error"
+            });
+
+        }
+    }
+    async searchStudents(req, res) {
+
+        try {
+
+            const { keyword } = req.query;
+
+            if (!keyword) {
+
+                return res.status(400).json({
+                    success: false,
+                    message: "Keyword is required"
+                });
+
+            }
+
+            const students = await studentService.searchStudents(keyword);
+
+            return res.status(200).json({
+                success: true,
+                count: students.length,
+                data: students
+            });
+
+        } catch (error) {
+
+            console.error("Search Student Error:", error);
+
+            return res.status(500).json({
+                success: false,
+                message: "Internal Server Error"
+            });
+
+        }
+    }
+    async getStudentsByDepartment(req, res) {
+
+        try {
+
+            const { department } = req.params;
+
+            const students =
+                await studentService.getStudentsByDepartment(department);
+
+            return res.status(200).json({
+                success: true,
+                count: students.length,
+                data: students
+            });
+
+        } catch (error) {
+
+            console.error("Department Students Error:", error);
+
+            return res.status(500).json({
+                success: false,
+                message: "Internal Server Error"
+            });
+
+        }
+    }
+
+    async getStudentsBySemester(req, res) {
+
+        try {
+
+            const semester = parseInt(req.params.semester);
+
+            const students =
+                await studentService.getStudentsBySemester(semester);
+
+            return res.status(200).json({
+                success: true,
+                count: students.length,
+                data: students
+            });
+
+        } catch (error) {
+
+            console.error("Semester Students Error:", error);
+
+            return res.status(500).json({
+                success: false,
+                message: "Internal Server Error"
+            });
+
+        }
+    }
 }
 
 export default new StudentController();

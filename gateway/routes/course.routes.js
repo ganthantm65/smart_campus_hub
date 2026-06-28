@@ -4,7 +4,7 @@ import { verifyToken } from '../middleware/authMiddleware.js';
 
 const courseRouter=express.Router();
 
-userRouter.use(verifyToken);
-userRouter.use("/",courseProxy);
+courseRouter.use(verifyToken);
+courseRouter.use("/",courseProxy);
 
-export default userRouter;
+export default courseRouter;

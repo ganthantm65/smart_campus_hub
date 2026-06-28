@@ -134,12 +134,12 @@ class StudentService {
 
         const redisKey = `student:${studentId}`;
 
-        const cachedStudent = await redisClient.get(redisKey);
+        const cached = await redisClient.get(redisKey);
 
-        if (cachedStudent) {
+        if (cached) {
             return {
                 source: "cache",
-                data: JSON.parse(cachedStudent)
+                data: JSON.parse(cached)
             };
         }
 
@@ -153,17 +153,19 @@ class StudentService {
                 s.student_id,
                 s.roll_no,
                 s.full_name,
-                s.department,
+                d.department_name,
                 s.semester,
                 s.year,
                 s.phone,
                 s.address,
                 s.created_at
-            FROM users u
+            FROM student_profile s
+            JOIN users u
+                ON s.user_id = u.user_id
             JOIN role r
                 ON u.role_id = r.role_id
-            JOIN student_profile s
-                ON u.user_id = s.user_id
+            JOIN department d
+                ON s.department_id = d.department_id
             WHERE s.student_id = $1
             `,
             [studentId]
@@ -173,20 +175,17 @@ class StudentService {
             throw new Error("Student not found");
         }
 
-        const student = result.rows[0];
-
         await redisClient.setEx(
             redisKey,
             3600,
-            JSON.stringify(student)
+            JSON.stringify(result.rows[0])
         );
 
         return {
             source: "database",
-            data: student
+            data: result.rows[0]
         };
     }
-
     async getMyProfile(userId) {
 
         const result = await pool.query(
@@ -283,6 +282,118 @@ class StudentService {
             message: "Student deleted successfully"
         };
     }
+
+    async getAllStudents() {
+
+        const result = await pool.query(
+            `
+            SELECT
+                s.student_id,
+                s.roll_no,
+                s.full_name,
+                d.department_name,
+                s.semester,
+                s.year,
+                s.phone,
+                s.address,
+                u.email,
+                s.created_at
+            FROM student_profile s
+            JOIN users u
+                ON s.user_id = u.user_id
+            JOIN department d
+                ON s.department_id = d.department_id
+            ORDER BY s.student_id
+            `
+        );
+
+        return result.rows;
+    }
+    async searchStudents(keyword) {
+
+        const result = await pool.query(
+            `
+            SELECT
+                s.student_id,
+                s.roll_no,
+                s.full_name,
+                d.department_name,
+                s.semester,
+                s.year,
+                s.phone,
+                s.address,
+                u.email
+            FROM student_profile s
+            JOIN users u
+                ON s.user_id = u.user_id
+            JOIN department d
+                ON s.department_id = d.department_id
+            WHERE
+                LOWER(s.full_name) LIKE LOWER($1)
+                OR LOWER(s.roll_no) LIKE LOWER($1)
+                OR LOWER(u.email) LIKE LOWER($1)
+            ORDER BY s.full_name
+            `,
+            [`%${keyword}%`]
+        );
+
+        return result.rows;
+    }
+    async getStudentsByDepartment(departmentName) {
+
+        const result = await pool.query(
+            `
+            SELECT
+                s.student_id,
+                s.roll_no,
+                s.full_name,
+                d.department_name,
+                s.semester,
+                s.year,
+                s.phone,
+                u.email
+            FROM student_profile s
+            JOIN users u
+                ON s.user_id = u.user_id
+            JOIN department d
+                ON s.department_id = d.department_id
+            WHERE d.department_name = $1
+            ORDER BY s.roll_no
+            `,
+            [departmentName]
+        );
+
+        return result.rows;
+    }
+
+    async getStudentsBySemester(semester) {
+
+        const result = await pool.query(
+            `
+            SELECT
+                s.student_id,
+                s.roll_no,
+                s.full_name,
+                d.department_name,
+                s.semester,
+                s.year,
+                s.phone,
+                u.email
+            FROM student_profile s
+            JOIN users u
+                ON s.user_id = u.user_id
+            JOIN department d
+                ON s.department_id = d.department_id
+            WHERE s.semester = $1
+            ORDER BY s.roll_no
+            `,
+            [semester]
+        );
+
+        return result.rows;
+    }
+
+
 }
 
 export default new StudentService();
