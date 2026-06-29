@@ -7,7 +7,7 @@ const router = express.Router();
 
 /* Create Student */
 router.post(
-    "/",
+    "/create",
     validateToken,
     checkRole("ADMIN"),
     studentController.createStudent

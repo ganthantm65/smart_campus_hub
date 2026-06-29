@@ -7,22 +7,37 @@ class AuthService{
     async register(username,password,email,role){
         const hashedPassword=await bcrypt.hash(password,10);
         const client=await pool.connect();
-        try{
-            const role_id=await this.findRoleByRoleName(role);
-            if(role_id==null){
+        try {
+            const role_id = await this.findRoleByRoleName(role);
+
+            if (role_id == null) {
                 throw new Error("Invalid role");
             }
-            if(await this.existByEmail(email)){
+
+            if (await this.existByEmail(email)) {
                 throw new Error("Email already exists");
             }
-            const query="INSERT INTO users (name,password,email,role_id) VALUES ($1,$2,$3,$4) RETURNING user_id";
-            const values=[username,hashedPassword,email,role_id];
-            const res=await client.query(query,values);
 
-            return {success:true,message:"User registered successfully",user_id:res.rows[0].user_id};
+            const query =
+                "INSERT INTO users(name,password,email,role_id) VALUES($1,$2,$3,$4) RETURNING user_id";
 
-        }catch(err){
-            return {success:false,message:err.message};
+            const values = [
+                username,
+                hashedPassword,
+                email,
+                role_id
+            ];
+
+            const res = await client.query(query, values);
+
+            return {
+                user_id: res.rows[0].user_id
+            };
+
+        } catch (err) {
+            throw err;
+        } finally {
+            client.release();
         }
     }
 

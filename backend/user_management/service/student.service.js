@@ -115,19 +115,19 @@ class StudentService {
                 data: result.rows[0]
             };
 
-        } catch (error) {
+            } catch (error) {
 
-            await client.query("ROLLBACK");
+                await client.query("ROLLBACK");
 
-            return {
-                success: false,
-                message: error.message
-            };
+                console.error(error);
 
-        } finally {
+                throw error;   // <-- Throw the error to the controller
 
-            client.release();
-        }
+            } finally {
+
+                client.release();
+
+            }
     }
 
     async getStudentById(studentId) {
